@@ -1,21 +1,45 @@
 // --------------------------------------------------
+// Vars
+// --------------------------------------------------
+
+const BASE_URL = "https://publisher.assetstore.unity3d.com";
+const PUBLISHER_OVERVIEW_URL = BASE_URL + "/api/publisher/overview.json";;
+
+var pollInterval = 30;  // minutes
+
+// --------------------------------------------------
+// Init
+// --------------------------------------------------
+
+function onInit() {
+    chrome.alarms.create('refresh', {periodInMinutes: pollInterval});
+    getCurrentRevenue();
+}
+
+// --------------------------------------------------
+// Actions
+// --------------------------------------------------
+
+// chrome.runtime.onInstalled.addListener(onInit);
+
+chrome.alarms.onAlarm.addListener(function(alarm) {
+    getCurrentRevenue();
+});
+
+chrome.browserAction.onClicked.addListener(function(tab) {
+    getCurrentRevenue();
+});
+
+// --------------------------------------------------
 // URLs
 // --------------------------------------------------
 
-function getBaseUrl() {
-  return "https://publisher.assetstore.unity3d.com";
-}
-
-function getPublisherOverviewUrl() {
-    return getBaseUrl() + "/api/publisher/overview.json";
-}
-
 function getCurrentPeriodUrl(id) {
-    return getBaseUrl() + "/api/publisher-info/months/" + id + ".json";
+    return BASE_URL + "/api/publisher-info/months/" + id + ".json";
 }
 
 function getCurrentRevenueUrl(id, period) {
-    return getBaseUrl() + "/api/publisher-info/sales/"+ id + "/" + period + ".json";
+    return BASE_URL + "/api/publisher-info/sales/"+ id + "/" + period + ".json";
 }
 
 // --------------------------------------------------
@@ -42,7 +66,7 @@ function get(url) {
 }
 
 function getPublisherId() {
-    var id = get(getPublisherOverviewUrl())
+    var id = get(PUBLISHER_OVERVIEW_URL)
         .then(JSON.parse)
         .then(function (result) {
             return result.overview.id;
@@ -63,6 +87,7 @@ function getCurrentPeriod(id) {
 }
 
 function getCurrentRevenue() {
+    showLoadingBadge();
     getPublisherId().then(function(id) {
         getCurrentPeriod(id).then(function(period) {
             get(getCurrentRevenueUrl(id, period))
@@ -83,16 +108,7 @@ function getCurrentRevenue() {
 function chainError(err) {
     showErrorBadge();
     return Promise.reject(err);
-};
-
-// --------------------------------------------------
-// Actions
-// --------------------------------------------------
-
-chrome.browserAction.onClicked.addListener(function(tab) {
-	showLoadingBadge();
-    getCurrentRevenue();
-});
+}
 
 // --------------------------------------------------
 // Visual
@@ -112,3 +128,9 @@ function showErrorBadge() {
 	chrome.browserAction.setBadgeBackgroundColor({color:[255,0,0,255]});
     chrome.browserAction.setBadgeText({ text: "ERR" } );
 }
+
+// --------------------------------------------------
+// Main
+// --------------------------------------------------
+
+onInit();

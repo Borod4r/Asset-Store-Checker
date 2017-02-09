@@ -3,7 +3,8 @@
 // --------------------------------------------------
 
 const BASE_URL = "https://publisher.assetstore.unity3d.com";
-const PUBLISHER_OVERVIEW_URL = BASE_URL + "/api/publisher/overview.json";;
+const SALES_URL = BASE_URL + "/sales.html";
+const PUBLISHER_OVERVIEW_URL = BASE_URL + "/api/publisher/overview.json";
 
 var pollInterval = 30;  // minutes
 
@@ -20,14 +21,12 @@ function onInit() {
 // Actions
 // --------------------------------------------------
 
-// chrome.runtime.onInstalled.addListener(onInit);
-
 chrome.alarms.onAlarm.addListener(function(alarm) {
     getCurrentRevenue();
 });
 
 chrome.browserAction.onClicked.addListener(function(tab) {
-    getCurrentRevenue();
+    chrome.tabs.create({ url: SALES_URL });
 });
 
 // --------------------------------------------------

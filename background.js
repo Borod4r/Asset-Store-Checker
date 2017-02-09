@@ -1,3 +1,17 @@
+/*
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
+ */
+
 // --------------------------------------------------
 // Vars
 // --------------------------------------------------
@@ -6,31 +20,31 @@ const BASE_URL = "https://publisher.assetstore.unity3d.com";
 const SALES_URL = BASE_URL + "/sales.html";
 const PUBLISHER_OVERVIEW_URL = BASE_URL + "/api/publisher/overview.json";
 
+const ALARM = "refresh";
+
 var pollInterval = 30;  // minutes
 
 // --------------------------------------------------
-// Init
+// Visual
 // --------------------------------------------------
 
-function onInit() {
-    chrome.alarms.create('refresh', {periodInMinutes: pollInterval});
-    getCurrentRevenue();
+function showLoadingBadge() {
+    chrome.browserAction.setBadgeBackgroundColor({color:[125,125,125,255]});
+    chrome.browserAction.setBadgeText({ text: ". . ." } );
+}
+
+function showRevenueBadge(revenue) {
+    chrome.browserAction.setBadgeBackgroundColor({color:[0,125,100,255]});
+    chrome.browserAction.setBadgeText({ text: revenue.toString() + "$" } );
+}
+
+function showErrorBadge() {
+    chrome.browserAction.setBadgeBackgroundColor({color:[255,0,0,255]});
+    chrome.browserAction.setBadgeText({ text: "ERR" } );
 }
 
 // --------------------------------------------------
-// Actions
-// --------------------------------------------------
-
-chrome.alarms.onAlarm.addListener(function(alarm) {
-    getCurrentRevenue();
-});
-
-chrome.browserAction.onClicked.addListener(function(tab) {
-    chrome.tabs.create({ url: SALES_URL });
-});
-
-// --------------------------------------------------
-// URLs
+// HTTP Requests
 // --------------------------------------------------
 
 function getCurrentPeriodUrl(id) {
@@ -40,10 +54,6 @@ function getCurrentPeriodUrl(id) {
 function getCurrentRevenueUrl(id, period) {
     return BASE_URL + "/api/publisher-info/sales/"+ id + "/" + period + ".json";
 }
-
-// --------------------------------------------------
-// HTTP Requests
-// --------------------------------------------------
 
 function get(url) {
     return new Promise(function(resolve, reject) {
@@ -110,22 +120,35 @@ function chainError(err) {
 }
 
 // --------------------------------------------------
-// Visual
+// Alarms
 // --------------------------------------------------
 
-function showLoadingBadge() {
-    chrome.browserAction.setBadgeBackgroundColor({color:[125,125,125,255]});
-    chrome.browserAction.setBadgeText({ text: ". . ." } );
+function scheduleRefreshAlarm() {
+    chrome.alarms.clear(ALARM);
+    chrome.alarms.create(ALARM, {periodInMinutes: pollInterval});
 }
 
-function showRevenueBadge(revenue) {
-    chrome.browserAction.setBadgeBackgroundColor({color:[0,125,100,255]});
-    chrome.browserAction.setBadgeText({ text: revenue.toString() + "$" } );
-}
+// --------------------------------------------------
+// Actions
+// --------------------------------------------------
 
-function showErrorBadge() {
-	chrome.browserAction.setBadgeBackgroundColor({color:[255,0,0,255]});
-    chrome.browserAction.setBadgeText({ text: "ERR" } );
+chrome.alarms.onAlarm.addListener(function(alarm) {
+    getCurrentRevenue();
+});
+
+chrome.browserAction.onClicked.addListener(function(tab) {
+    chrome.tabs.create({ url: SALES_URL });
+    scheduleRefreshAlarm();
+    getCurrentRevenue();
+});
+
+// --------------------------------------------------
+// Init
+// --------------------------------------------------
+
+function onInit() {
+    scheduleRefreshAlarm();
+    getCurrentRevenue();
 }
 
 // --------------------------------------------------

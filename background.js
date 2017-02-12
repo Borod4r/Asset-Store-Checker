@@ -44,6 +44,40 @@ function showErrorBadge() {
 }
 
 // --------------------------------------------------
+// Notifications
+// --------------------------------------------------
+
+function playNotificationSound() {
+    var sound = new Audio('audio/coin.mp3');
+    sound.play();
+}
+
+function showRevenueNotification(revenue) {
+    var opt = {
+        type: "basic",
+        title: "Asset Store Checker",
+        message: "+ " + revenue.toString() + "$",
+        iconUrl: "icon.128.png"
+    };
+    chrome.notifications.create(opt);
+    playNotificationSound();
+}
+
+// --------------------------------------------------
+// Storage
+// --------------------------------------------------
+
+function checkRevenueDiff(revenue, callback) {
+    chrome.storage.local.get(['revenue'], function (old) {
+        var diff = revenue - old.revenue;
+        if (diff > 0) {
+            callback(diff);
+            chrome.storage.local.set({'revenue': revenue});
+        }
+    });
+}
+
+// --------------------------------------------------
 // HTTP Requests
 // --------------------------------------------------
 
@@ -102,13 +136,14 @@ function getCurrentRevenue() {
             get(getCurrentRevenueUrl(id, period))
                 .then(JSON.parse)
                 .then(function (result) {
-                        var arr = result.aaData;
-                        var total= 0.0;
-                        for(var i in arr) {
-                            total += parseFloat(arr[i][5].replace(/\$|,/g, ''));
-                        }
-                        total = Math.round(total * 0.7);
-                        showRevenueBadge(total);
+                    var arr = result.aaData;
+                    var revenue= 0.0;
+                    for(var i in arr) {
+                        revenue += parseFloat(arr[i][5].replace(/\$|,/g, ''));
+                    }
+                    revenue = Math.round(revenue * 0.7);
+                    showRevenueBadge(revenue);
+                    checkRevenueDiff(revenue, showRevenueNotification);
                 }, chainError);
         }, chainError);
     }, chainError);

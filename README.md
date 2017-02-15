@@ -1,8 +1,12 @@
 # Asset Store Checker
 
-Asset Store Checker is a simple chrome extension that's periodically checking your revenue on Unity Asset Store and displays it right in the chrome toolbar.
+Asset Store Checker is a simple chrome extension that periodically checks your revenue on Unity Asset Store and displays it right in the chrome toolbar.
 
-![Asset Store Checker icon](https://raw.githubusercontent.com/PhannGor/phanngor.github.io/master/stuff/storechecker/images/01.png)
+![Icon](https://raw.githubusercontent.com/PhannGor/phanngor.github.io/master/stuff/storechecker/images/01.png)
+
+It also shows a notification if something has sold.
+
+![Notification](https://raw.githubusercontent.com/PhannGor/phanngor.github.io/master/stuff/storechecker/images/02.png)
 
 ## How to install
 
@@ -18,4 +22,4 @@ Alternatively, you can drag and drop the directory where the extension files liv
 
 ## How to use
 
-Extension does not require any additional settings, just make sure you're logged in on the Asset Store with your publisher account.
+The extension does not require any additional settings, just make sure you're logged in on the Asset Store with your publisher account.

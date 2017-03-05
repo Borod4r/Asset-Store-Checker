@@ -67,12 +67,14 @@ function showRevenueNotification(revenue) {
 // Storage
 // --------------------------------------------------
 
-function checkRevenueDiff(revenue, callback) {
-    chrome.storage.local.get(['revenue'], function (old) {
-        var diff = revenue - old.revenue;
+function checkRevenueDiff(period, revenue, callback) {
+    var revenueKey = 'revenue_' + period.toString();
+    chrome.storage.local.get(revenueKey, function (old) {
+        var oldRevenue = old[revenueKey] || 0;
+        var diff = revenue - oldRevenue;
         if (diff > 0) {
             callback(diff);
-            chrome.storage.local.set({'revenue': revenue});
+            chrome.storage.local.set({[revenueKey]: revenue});
         }
     });
 }
@@ -143,7 +145,7 @@ function getCurrentRevenue() {
                     }
                     revenue = Math.round(revenue * 0.7);
                     showRevenueBadge(revenue);
-                    checkRevenueDiff(revenue, showRevenueNotification);
+                    checkRevenueDiff(period, revenue, showRevenueNotification);
                 }, chainError);
         }, chainError);
     }, chainError);
